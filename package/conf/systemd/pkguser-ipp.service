@@ -1,0 +1,7 @@
+[Unit]
+Description=Eaton Intelligent Power Protector
+
+[Service]
+Type=simple
+ExecStart=/var/packages/eaton-ipp/target/mc2 -start
+Restart=on-failure

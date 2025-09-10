@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -o pipefail
+set -o nounset
+set -e
+
+# Regenerate web-panel SSH certitificate.
+
+/bin/openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -subj "/CN=Eaton" \
+    -keyout "${SYNOPKG_PKGDEST}/bin/key.pem" \
+    -out "${SYNOPKG_PKGDEST}/bin/cert.pem"
+
+# Write default configuration.
+
+cat > "${SYNOPKG_PKGDEST}/configs/config.js" <<EOF
+cfg =
+{
+  "shutdownSettings":
+  {
+    "shutdownType": "script",
+    "shutdownScript": "${SYNOPKG_PKGDEST}/configs/actions/synopoweroff"
+  },
+  "autoUpdate":
+  {
+    "checkInterval": -1,
+  }
+}
+EOF
+
+chmod 644 "${SYNOPKG_PKGDEST}/configs/config.js"

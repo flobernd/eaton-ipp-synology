@@ -1,0 +1,20 @@
+{
+    ".url": {
+        "com.eaton.IPP": {
+            "title": "Eaton Intelligent Power Protector",
+            "desc": "Eaton Intelligent Power Protector UI",
+            "icon": "images/icon_256.png",
+            "texts": "texts",
+            "type": "url",
+            "protocol": "https",
+            "port": "4680",
+            "url": "/",
+            "allUsers": false,
+            "appWindow": "com.eaton.IPP",
+            "preloadTexts": [
+                "app:title",
+                "app:text"
+            ]
+        }
+    }
+}

@@ -1,0 +1,97 @@
+#!/bin/bash
+
+set -o pipefail
+set -o nounset
+set -e
+
+check_ipp_shutdown_config() {
+    local file="${SYNOPKG_PKGDEST}/configs/config.js"
+    local expected_type="script"
+    local expected_script="${SYNOPKG_PKGDEST}/configs/actions/synopoweroff"
+
+    local type script
+
+    [[ -e "$file" ]] || return 1
+
+    # Strip the first line ('cfg =') and parse the rest as JSON.
+    type=$(tail -n +2 "$file" | jq -r '.shutdownSettings.shutdownType // empty')
+    script=$(tail -n +2 "$file" | jq -r '.shutdownSettings.shutdownScript // empty')
+
+    if [[ "$type" != "${expected_type}" ]] || \
+       [[ "$script" != "${expected_script}" ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+check_synopoweroff_permissions() {
+    local file="${SYNOPKG_PKGDEST}/configs/actions/synopoweroff"
+    local expected_perms="4750"
+    local expected_owner="root"
+    local expected_group="${SYNOPKG_PKGNAME}"
+
+    local actual_perms actual_owner actual_group
+
+    [[ -e "$file" ]] || return 1
+
+    actual_perms=$(stat -c "%a" "$file")
+    actual_owner=$(stat -c "%U" "$file")
+    actual_group=$(stat -c "%G" "$file")
+
+    if [[ "$actual_perms" != "$expected_perms" ]] || \
+       [[ "$actual_owner" != "$expected_owner" ]] || \
+       [[ "$actual_group" != "$expected_group" ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+service_name="pkguser-ipp.service"
+
+case $1 in
+    start)
+        if ! check_ipp_shutdown_config; then
+            /usr/syno/bin/synodsmnotify \
+                -c "com.eaton.IPP" \
+                -l warn \
+                @administrators \
+                "eaton-ipp:app:title" \
+                "eaton-ipp:app:text" \
+                "Incorrect shutdown configuration. Automatic shutdown will NOT work! Please visit 'https://github.com/flobernd/eaton-ipp-synology' for detailed instructions"
+        fi
+
+        if ! check_synopoweroff_permissions; then
+            /usr/syno/bin/synodsmnotify \
+                -c "com.eaton.IPP" \
+                -l warn \
+                -p html \
+                @administrators \
+                "eaton-ipp:app:title" \
+                "eaton-ipp:app:text" \
+                "Incorrect file permissions. Automatic shutdown will NOT work! Please visit 'https://github.com/flobernd/eaton-ipp-synology' for detailed instructions"
+        fi
+
+        /usr/syno/bin/synosystemctl start "${service_name}"
+    ;;
+    stop)
+        /usr/syno/bin/synosystemctl stop "${service_name}"
+    ;;
+    status)
+        # https://help.synology.com/developer-guide/synology_package/scripts.html#start-stop-status
+
+        status=$(/usr/syno/bin/synosystemctl get-active-status "${service_name}") || exit 4
+        case "${status}" in
+            active)
+                exit 0 # package is running
+                ;;
+            inactive)
+                exit 3 # package is not running
+                ;;
+            *)
+                exit 4 # package status is unknown
+                ;;
+        esac
+    ;;
+esac

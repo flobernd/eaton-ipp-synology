@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -o pipefail
+set -o nounset
+set -e
+
+# Restore web-panel certificate.
+
+cp -a "${SYNOPKG_TEMP_UPGRADE_FOLDER}/cert.pem" "${SYNOPKG_PKGDEST}/bin/cert.pem"
+cp -a "${SYNOPKG_TEMP_UPGRADE_FOLDER}/key.pem" "${SYNOPKG_PKGDEST}/bin/key.pem"
+
+# Restore configuration and database.
+
+cp -a "${SYNOPKG_TEMP_UPGRADE_FOLDER}"/configs/. "${SYNOPKG_PKGDEST}/configs"
+cp -a "${SYNOPKG_TEMP_UPGRADE_FOLDER}"/db/. "${SYNOPKG_PKGDEST}/db"

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -o pipefail
+set -o nounset
+set -e
+
+# Preserve web-panel certificate.
+
+cp -a "${SYNOPKG_PKGDEST}/bin/cert.pem" "${SYNOPKG_TEMP_UPGRADE_FOLDER}"
+cp -a "${SYNOPKG_PKGDEST}/bin/key.pem" "${SYNOPKG_TEMP_UPGRADE_FOLDER}"
+
+# Preserve configuration and database.
+
+cp -a "${SYNOPKG_PKGDEST}/configs" "${SYNOPKG_TEMP_UPGRADE_FOLDER}"
+cp -a "${SYNOPKG_PKGDEST}/db" "${SYNOPKG_TEMP_UPGRADE_FOLDER}"
