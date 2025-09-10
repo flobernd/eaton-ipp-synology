@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Disable SC2034 for the entire script.
+# shellcheck disable=SC2034
+true
+
+# shellcheck disable=SC1091
 . /pkgscripts/include/pkg_util.sh
 
 package="eaton-ipp"
@@ -24,6 +29,8 @@ dsmuidir="ui"
 dsmappname="com.eaton.IPP"
 support_center="no"
 
+
+# shellcheck disable=SC3044
 [ "$(caller)" != "0 NULL" ] && return 0
 
 pkg_dump_info
