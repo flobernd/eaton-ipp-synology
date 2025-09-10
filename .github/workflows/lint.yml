@@ -1,0 +1,81 @@
+name: CI
+
+on: # yamllint disable-line rule:truthy
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  hadolint:
+    name: Hadolint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint
+        uses: reviewdog/action-hadolint@fc7ee4a9f71e521bc43e370819247b70e5327540
+        with:
+          reporter: github-pr-check
+          filter_mode: nofilter
+          reviewdog_flags: '-fail-level=any'
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint
+        uses: reviewdog/action-shellcheck@5ebd09ddbe2ebb471646ce234c6c8dd18663ca7c
+        with:
+          reporter: github-pr-check
+          filter_mode: nofilter
+          reviewdog_flags: '-fail-level=any'
+
+  markdownlint:
+    name: MarkdownLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint
+        uses: reviewdog/action-markdownlint@3667398db9118d7e78f7a63d10e26ce454ba5f58
+        with:
+          reporter: github-pr-check
+          filter_mode: nofilter
+          reviewdog_flags: '-fail-level=any'
+
+  yamllint:
+    name: YamlLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint
+        uses: reviewdog/action-yamllint@f01d8a48fd8d89f89895499fca2cff09f9e9e8c0
+        with:
+          reporter: github-pr-check
+          filter_mode: nofilter
+          reviewdog_flags: '-fail-level=any'
+
+  actionlint:
+    name: ActionLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint
+        uses: reviewdog/action-actionlint@a5524e1c19e62881d79c1f1b9b6f09f16356e281
+        with:
+          reporter: github-pr-check
+          filter_mode: nofilter
+          reviewdog_flags: '-fail-level=any'

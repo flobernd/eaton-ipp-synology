@@ -19,6 +19,7 @@ RUN set -eux; \
     ; \
     rm -rf /var/lib/apt/lists/*
 
+# hadolint ignore=DL3003,DL3008
 RUN set -eux; \
     \
     apt-get update; \
@@ -35,9 +36,9 @@ RUN set -eux; \
     mkdir -p /toolkit/sources; \
     mkdir -p /toolkit/packages; \
     mkdir -p /toolkit/toolkit_tarballs && cd /toolkit/toolkit_tarballs; \
-    wget "https://global.synologydownload.com/download/ToolChain/toolkit/${TOOLKIT_VER}/base/base_env-${TOOLKIT_VER}.txz"; \
-    wget "https://global.synologydownload.com/download/ToolChain/toolkit/${TOOLKIT_VER}/${PLATFORM}/ds.${PLATFORM}-${TOOLKIT_VER}.env.txz"; \
-    wget "https://global.synologydownload.com/download/ToolChain/toolkit/${TOOLKIT_VER}/${PLATFORM}/ds.${PLATFORM}-${TOOLKIT_VER}.dev.txz"; \
+    wget --progress=dot:giga "https://global.synologydownload.com/download/ToolChain/toolkit/${TOOLKIT_VER}/base/base_env-${TOOLKIT_VER}.txz"; \
+    wget --progress=dot:giga "https://global.synologydownload.com/download/ToolChain/toolkit/${TOOLKIT_VER}/${PLATFORM}/ds.${PLATFORM}-${TOOLKIT_VER}.env.txz"; \
+    wget --progress=dot:giga "https://global.synologydownload.com/download/ToolChain/toolkit/${TOOLKIT_VER}/${PLATFORM}/ds.${PLATFORM}-${TOOLKIT_VER}.dev.txz"; \
     apt-get purge -y --auto-remove \
         git \
         wget \
