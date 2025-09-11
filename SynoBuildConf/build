@@ -1,5 +1,13 @@
 #!/bin/bash
 
+(
+	cd package/src
+	mkdir -p build
+	cmake -DCMAKE_BUILD_TYPE=Release -S . -B build
+	cd build
+	make
+)
+
 cd package
 
 case ${MakeClean} in

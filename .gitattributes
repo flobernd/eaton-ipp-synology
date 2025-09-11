@@ -42,6 +42,27 @@
 # Text files where line endings should be preserved
 *.patch    -text
 
+### Synology #######################################################################################
+
+# Force Synology package files to always use LF line endings. Most files in these directories do 
+# not have an extension.
+
+package/conf/privilege              text eol=lf
+package/conf/resource               text eol=lf
+package/conf/systemd/*.service      text eol=lf
+package/scripts/postinst            text eol=lf
+package/scripts/pstuninst           text eol=lf
+package/scripts/postupgrade         text eol=lf
+package/scripts/preinst             text eol=lf
+package/scripts/preuninst           text eol=lf
+package/scripts/preupgrade          text eol=lf
+package/scripts/start-stop-status   text eol=lf
+package/ui/config                   text eol=lf
+package/ui/texts/**/*               text eol=lf
+SynoBuildConf/build                 text eol=lf
+SynoBuildConf/depends               text eol=lf
+SynoBuildConf/install               text eol=lf
+
 ### Docker #########################################################################################
 
 Dockerfile text

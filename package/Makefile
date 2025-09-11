@@ -32,10 +32,9 @@ $(IPP_INSTALL_DIR): $(IPP_PKGNAME)
 	mkdir -p $(IPP_INSTALL_DIR)/configs/actions
 	$(CC) -o $(IPP_INSTALL_DIR)/configs/actions/synopoweroff src/synopoweroff.c $(CFLAGS)
 	chmod 0750 $(IPP_INSTALL_DIR)/configs/actions/synopoweroff
-
-# 	mkdir -p $(IPP_INSTALL_DIR)/configs/actions
-# 	$(CC) -o $(IPP_INSTALL_DIR)/configs/actions/server src/server.c $(CFLAGS) -pthread
-# 	chmod 0750 $(IPP_INSTALL_DIR)/configs/actions/server
+# Copy IPP NUT proxy.
+	cp src/build/ipp_nut_proxy $(IPP_INSTALL_DIR)/ipp_nut_proxy
+	chmod 0750 $(IPP_INSTALL_DIR)/ipp_nut_proxy
 
 install: $(IPP_INSTALL_DIR)
 	cp -a $(IPP_INSTALL_DIR)/* $(DESTDIR)

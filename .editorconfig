@@ -42,6 +42,56 @@ end_of_line = lf
 [Makefile]
 indent_style = tab
 
+### Synology ---------------------------------------------------------------------------------------
+
+# Force Synology package files to always use LF line endings. Most files in these directories do 
+# not have an extension.
+
+[package/conf/privilege]
+end_of_line = lf
+
+[package/conf/resource]
+end_of_line = lf
+
+[package/conf/systemd/*.service]
+end_of_line = lf
+
+[package/scripts/postinst]
+end_of_line = lf
+
+[package/scripts/pstuninst]
+end_of_line = lf
+
+[package/scripts/postupgrade]
+end_of_line = lf
+
+[package/scripts/preinst]
+end_of_line = lf
+
+[package/scripts/preuninst]
+end_of_line = lf
+
+[package/scripts/preupgrade]
+end_of_line = lf
+
+[package/scripts/start-stop-status]
+end_of_line = lf
+
+[package/ui/config]
+end_of_line = lf
+
+[package/ui/texts/**/*]
+end_of_line = lf
+
+[SynoBuildConf/build]
+end_of_line = lf
+
+[SynoBuildConf/depends]
+end_of_line = lf
+
+[SynoBuildConf/install]
+end_of_line = lf
+
 ### ------------------------------------------------------------------------------------------------
 
 ### License ########################################################################################
