@@ -7,7 +7,7 @@ set -e
 check_ipp_shutdown_config() {
     local file="${SYNOPKG_PKGDEST}/configs/config.js"
     local expected_type="script"
-    local expected_script="${SYNOPKG_PKGDEST}/configs/actions/synopoweroff"
+    local expected_script="${SYNOPKG_PKGDEST}/configs/actions/signal_lb.sh"
 
     local type script
 
@@ -25,30 +25,9 @@ check_ipp_shutdown_config() {
     return 0
 }
 
-check_synopoweroff_permissions() {
-    local file="${SYNOPKG_PKGDEST}/configs/actions/synopoweroff"
-    local expected_perms="4750"
-    local expected_owner="root"
-    local expected_group="${SYNOPKG_PKGNAME}"
-
-    local actual_perms actual_owner actual_group
-
-    [[ -e "$file" ]] || return 1
-
-    actual_perms=$(stat -c "%a" "$file")
-    actual_owner=$(stat -c "%U" "$file")
-    actual_group=$(stat -c "%G" "$file")
-
-    if [[ "$actual_perms" != "$expected_perms" ]] || \
-       [[ "$actual_owner" != "$expected_owner" ]] || \
-       [[ "$actual_group" != "$expected_group" ]]; then
-        return 1
-    fi
-
-    return 0
-}
-
+# TODO: Implement simple service process that manages all sub-processes.
 service_name="pkguser-ipp.service"
+service_name_nut="pkguser-ipp-nut.service"
 
 case $1 in
     start)
@@ -62,21 +41,12 @@ case $1 in
                 "Incorrect shutdown configuration. Automatic shutdown will NOT work! Please visit 'https://github.com/flobernd/eaton-ipp-synology' for detailed instructions"
         fi
 
-        if ! check_synopoweroff_permissions; then
-            /usr/syno/bin/synodsmnotify \
-                -c "com.eaton.IPP" \
-                -l warn \
-                -p html \
-                @administrators \
-                "eaton-ipp:app:title" \
-                "eaton-ipp:app:text" \
-                "Incorrect file permissions. Automatic shutdown will NOT work! Please visit 'https://github.com/flobernd/eaton-ipp-synology' for detailed instructions"
-        fi
-
         /usr/syno/bin/synosystemctl start "${service_name}"
+        /usr/syno/bin/synosystemctl start "${service_name_nut}"
     ;;
     stop)
         /usr/syno/bin/synosystemctl stop "${service_name}"
+        /usr/syno/bin/synosystemctl stop "${service_name_nut}"
     ;;
     status)
         # https://help.synology.com/developer-guide/synology_package/scripts.html#start-stop-status

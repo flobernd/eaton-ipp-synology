@@ -18,13 +18,25 @@ cfg =
   "shutdownSettings":
   {
     "shutdownType": "script",
-    "shutdownScript": "${SYNOPKG_PKGDEST}/configs/actions/synopoweroff"
+    "shutdownScript": "${SYNOPKG_PKGDEST}/configs/actions/signal_lb.sh"
   },
   "autoUpdate":
   {
-    "checkInterval": -1,
+    "checkInterval": -1
   }
 }
 EOF
 
 chmod 644 "${SYNOPKG_PKGDEST}/configs/config.js"
+
+# Write IPP NUT low battery signal script.
+
+script_file="${SYNOPKG_PKGDEST}/configs/actions/signal_lb.sh"
+signal_file="${SYNOPKG_PKGDEST}/lb_timestamp"
+
+cat > "$script_file" <<EOF
+#!/bin/bash
+date +%s > "$signal_file"
+EOF
+
+chmod +x "$script_file"
