@@ -59,7 +59,7 @@ ensure the NAS is only powered down after dependent systems, such as servers or 
 
 This repository contains tooling to build and package Eaton IPP for Synology DSM 7 using the official Eaton IPP deb installer package.
 
-## Building the Package
+## Build the Package
 
 There are two primary ways to build this package, depending on your preferred workflow.
 
@@ -95,79 +95,48 @@ toolkit installed or prefer a more hands-on build process.
 Detailed setup- and build instructions are available in the official
 [Synology Developer Toolkit guide](https://help.synology.com/developer-guide/getting_started/prepare_environment.html).
 
-## Installation
+## Install the Package
 
-### Configure DSM
+Open the "Package Center" and select "Manual Install." Choose the `eaton-ipp-x86_64-*.spk` package file and complete the wizard to install
+it.
 
-It is crucial to disable the native UPS monitoring functionality in DSM by navigating to "Control Panel" > "Hardware & Power" > "UPS" and
-ensuring the "Enable UPS support" option is **unchecked**.
+Check the "Run after installation" option if you want the package to start automatically after installation.
+
+If you want to manually start or stop the package later, you can do so from the DSM Package Center.
+
+## Configure UPS Monitoring in DSM
+
+To enable native UPS monitoring functionality in Synology DSM and to configure it to monitor the Eaton IPP proxy UPS, follow these steps:
+
+1. Navigate to **Control Panel** > **Hardware & Power** > **UPS**.
+2. Ensure that **Enable UPS support** is checked.
+3. Set the **UPS type** to **Synology UPS Server**.
+4. For **Network UPS server IP**, enter the IP address of your NAS (any network interface will work).
+5. Go to **Control Panel** > **Hardware & Power** > **General** and make sure that **Restart automatically when power supply issue is fixed**
+   is checked.
+
+To verify the setup, click the **Device Information** button in the DSM UPS settings. This should display some static data, such as:
+
+- **Model:** Eaton Intelligent Power Protector Relay
+
+If you see this information, the Eaton IPP proxy UPS integration is working as expected.
+
+> [!IMPORTANT]
+> It is important to configure a static IP address for your NAS. If the NAS uses a dynamic IP (via DHCP), it may lose connection to the
+> UPS proxy server, resulting in unreliable UPS monitoring and shutdown functionality.
 
 <details>
   <summary>Additional context</summary>
 
-  When battery power is low, the native DSM UPS integration will place the NAS into safe mode rather than fully shutting it down. The Eaton
-  IPP package replicates this behavior, entering safe mode when its configured power conditions are met.
+  Synology DSM uses [NUT (Network UPS Tools)](https://networkupstools.org/) under the hood for its native UPS monitoring.
 
-  Synology has made a - in my opinion - questionable design decision by implementing an automatic reboot mechanism: if the main power
-  returns before the UPS is exhausted or its shutdown sequence is completed (i.e., while the NAS is still powered by the UPS), DSM will
-  automatically exit safe mode and restart the system.
+  The Eaton IPP NUT proxy server runs locally on the NAS, which would suggest that `127.0.0.1` (the loopback address)
+  could be used as the Network UPS server IP. Unfortunately, Synology's configuration UI enforces strict validation and
+  does not allow entering the loopback IP, so this is not possible - even though it would be the most straightforward solution.
 
-  While this behavior makes sense in simple scenarios where the UPS is directly attached to the NAS and no other devices are connected
-  (or all other devices have a similar recovery functionality), it does not make sense in advanced setups involving network UPS powering
-  multiple devices. In this case, the UPS is most of the times configured to keep the shutdown sequence running until the end - even when
-  power returns - in order to power cycle all devices (forced reboot).
-
-  If DSM initiates its own reboot before the UPS has completed its shutdown sequence, the NAS becomes susceptible to an improper shutdown
-  when power is lost again. This behavior ultimately defeats the purpose of the UPS and undermines the protection it is designed to provide.
-
-  Disabling UPS support is the only way to fully prevent this automatic restart behavior.
 </details>
 
-> [!NOTE]
-> If the DSM native UPS support is enabled, the package will display a warning at startup.
-
-### Install the Package
-
-Open the "Package Center" and select "Manual Install." Choose the `eaton-ipp-x86_64-*.spk` package file and complete the wizard to install it.
-
-**Important:** Ensure that the "Run after installation" option is unchecked.
-
-### Grant shutdown permissions
-
-DSM 7 runs packages as unprivileged users for security reasons. Shutting down the system is a critical operation that can only be performed
-by the `root` user.
-
-The Eaton Intelligent Power Protector for DSM 7 package includes a program that wraps the `synopoweroff -s` system command, which is also
-used by the native UPS monitoring to shut down the NAS in case of a low battery event.
-
-To allow Eaton IPP to trigger a safe system shutdown, follow these steps to change the script's owner to `root` and set the `setuid`
-permission:
-
-1. If not already enabled, go to "Control Panel" > "Terminal & SNMP" and activate "Enable SSH service".
-2. Connect to your NAS via SSH using an admin account:
-
-   ```bash
-   ssh -o PubkeyAuthentication=no adminuser@192.168.1.123 # DSM IP address or hostname
-   ```
-
-3. Execute the following command and provide your password when prompted:
-
-   ```bash
-   sudo /var/packages/eaton-ipp/scripts/update_permissions.sh
-   ```
-
-> [!WARNING]
-> You must repeat this procedure after reinstalling or upgrading the package, as DSM resets permissions to their defaults.
-
-> [!NOTE]
-> If the file permissions are not set correctly, the package will display a warning at startup.
-
-### Start the Package
-
-Navigate to "Package Center" > "Installed" > "Eaton Intelligent Power Protector" and click the "Start" button. If everything is set up
-correctly, there should be no warning messages.
-
-### Configure IPP
+## Configure IPP
 
 Access the IPP web interface to begin configuration. The default login credentials are `admin` for both username and password.
 
@@ -183,7 +152,7 @@ For more detailed information about configuration options and advanced settings,
 The default values are:
 
 - "Shutdown Type": `Script`
-- "Shutdown Script": `/usr/local/packages/@appstore/eaton-ipp/configs/actions/synopoweroff`
+- "Shutdown Script": `/usr/local/packages/@appstore/eaton-ipp/configs/actions/signal_lb.sh`
 
 > [!WARNING]
 > Changing these options will prevent the shutdown functionality from working properly.
@@ -200,26 +169,26 @@ If everything is functioning correctly, DSM should enter safe mode after a few s
 SSH access will remain available in this state. To exit safe mode, you must either power cycle the device (this is totally safe to do in
 this state) or, alternatively, execute `sudo /sbin/reboot` via SSH.
 
-## Future Plans
+## Disclaimer
 
-One thing I would really like to achieve in v2 is to eliminate the need for manual file permission adjustments via SSH. Ideally, all
-configuration should be manageable entirely through the DSM web interface.
+When battery power is low, the native DSM UPS integration will place the NAS into safe mode rather than fully shutting it down.
 
-A promising solution involves leveraging the native DSM UPS support to monitor a "Synology UPS Server" (which is, in reality, a NUT server
-under the hood). The package would run its own lightweight NUT server implementation, reporting static UPS values to the NAS
-(primarily `ups.status`: `OL` for "online"). IPP would remain configured to execute a script on shutdown, but instead of directly
-triggering safe mode, the script would signal the NUT server to change the `ups.status` value to `OB LB` ("on-battery", "low-battery").
-This status immediately triggers DSM's built-in safe mode functionality.
+Synology has made a - in my opinion - questionable design decision by implementing an automatic reboot mechanism: if the main power
+returns before the UPS is exhausted or its shutdown sequence is completed (i.e., while the NAS is still powered by the UPS), DSM will
+automatically exit safe mode and restart the system.
 
-Initial proof-of-concept testing has shown this approach to work quite well. Unfortunately, Synology enforces strict validation and does
-not allow `127.0.0.1` to be used as the "Synology UPS Server" IP address. However, you can still use the external IP of any NIC, which will
-be redirected to `localhost` by the network stack. This does require at least one NIC to be configured with a static IP, but that should be
-the case for the vast majority of setups.
+While this behavior makes sense in simple scenarios where the UPS is directly attached to the NAS and no other devices are connected
+(or all other devices have a similar recovery functionality), it does not make sense in advanced setups involving network UPS powering
+multiple devices. In this case, the UPS is most of the times configured to keep the shutdown sequence running until the end - even when
+power returns - in order to power cycle all devices (forced reboot).
 
-Another benefit is that this approach prevents DSM from monitoring a UPS through the native integration while the IPP package is in use.
-This avoids the unwanted side effect of DSM automatically rebooting when main power returns. Instead, the internal NUT server continues to
-signal `OB LB` until it is explicitly restarted (such as after the next reboot), ensuring that DSM remains in safe mode as intended until
-the UPS is exhausted or force-rebooted.
+If DSM initiates its own reboot before the UPS has completed its shutdown sequence, the NAS becomes susceptible to an improper shutdown
+when power is lost again. This behavior ultimately defeats the purpose of the UPS and undermines the protection it is designed to provide.
+
+With the Eaton IPP UPS proxy, the standard automatic reboot behavior of DSM does not work. This is because the proxy does not continuously
+monitor the UPS status, but simply reacts to an event triggered by the shutdown script configured in IPP. As a result, DSM will not
+automatically restart when AC power returns, **unless the UPS is configured to briefly cut the power and reboot itself after power is
+restored (forced reboot)**.
 
 ## License
 
